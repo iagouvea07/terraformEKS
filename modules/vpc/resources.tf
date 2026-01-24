@@ -36,6 +36,23 @@ resource "aws_internet_gateway" "internet_gateway" {
   }
 }
 
+resource "aws_eip" "elastic_ip" {
+  domain = "vpc"
+
+  tags = {
+    Name = "${var.prefix}-nat-ip"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gateway" {
+  allocation_id = aws_eip.elastic_ip.id
+  subnet_id     = aws_subnet.public_subnet.id
+
+  tags = {
+    Name = "${var.prefix}-nat-gateway"
+  }
+}
+
 resource "aws_route_table" "public_route_table" {
     vpc_id = aws_vpc.vpc_main.id
 
@@ -60,6 +77,11 @@ resource "aws_route_table" "private_route_table" {
     route {
         cidr_block = var.vpc_cidr_block
         gateway_id = "local"
+    }
+
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_nat_gateway.nat_gateway.id
     }
 
     tags = {

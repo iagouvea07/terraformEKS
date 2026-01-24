@@ -9,6 +9,7 @@ The resources that will be created are:
 - 1 VPC
 - 1 Public Subnet and 1 Private Subnet
 - 1 Internet Gateway
+- 1 NAT Gateway
 - 1 Public Route Table and 1 Private Route Table
 - 1 EKS Cluster
 
