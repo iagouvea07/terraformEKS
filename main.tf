@@ -13,9 +13,9 @@ provider "aws" {
 }
 
 module "vpc" {
-  source                    = "./modules/vpc"
-  global                    = var.global
-  vpc                       = var.vpc
+  source = "./modules/vpc"
+  global = var.global
+  vpc    = var.vpc
 }
 
 module "eks" {

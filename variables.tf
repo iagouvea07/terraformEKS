@@ -13,7 +13,7 @@ variable "vpc" {
     vpc_cidr_block            = string
     public_subnet_cidr_block  = string
     private_subnet_cidr_block = list(string)
-  })  
+  })
 }
 
 variable "eks" {
