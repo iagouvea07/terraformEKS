@@ -8,15 +8,12 @@ terraform {
 }
 
 provider "aws" {
-  region  = var.region
-  profile = var.profile
+  region  = var.global.region
+  profile = var.global.profile
 }
 
 module "vpc" {
   source                    = "./modules/vpc"
-  region                    = var.region
-  prefix                    = var.prefix
-  vpc_cidr_block            = var.vpc_cidr_block
-  public_subnet_cidr_block  = var.public_subnet_cidr_block
-  private_subnet_cidr_block = var.private_subnet_cidr_block
+  global                    = var.global
+  vpc                       = var.vpc
 }

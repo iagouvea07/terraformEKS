@@ -1,30 +1,30 @@
 resource "aws_vpc" "vpc_main" {
-  cidr_block            = var.vpc_cidr_block
+  cidr_block            = var.vpc.vpc_cidr_block
   enable_dns_hostnames  = true
 
   tags = {
-    Name = "${var.prefix}-vpc"
+    Name = "${var.global.prefix}-vpc"
   }
 }
 
 resource "aws_subnet" "public_subnet" {
   vpc_id                    = aws_vpc.vpc_main.id
-  cidr_block                = var.public_subnet_cidr_block
+  cidr_block                = var.vpc.public_subnet_cidr_block
   map_public_ip_on_launch   = true
-  availability_zone         = "${var.region}a"
+  availability_zone         = "${var.global.region}a"
 
   tags = {
-    Name = "${var.prefix}-public-subnet"
+    Name = "${var.global.prefix}-public-subnet"
   }
 }
 
 resource "aws_subnet" "private_subnet" {
   vpc_id                    = aws_vpc.vpc_main.id
-  cidr_block                = var.private_subnet_cidr_block
-  availability_zone         = "${var.region}b"
+  cidr_block                = var.vpc.private_subnet_cidr_block
+  availability_zone         = "${var.global.region}b"
 
   tags = {
-    Name = "${var.prefix}-private-subnet"
+    Name = "${var.global.prefix}-private-subnet"
   }
 }
 
@@ -32,7 +32,7 @@ resource "aws_internet_gateway" "internet_gateway" {
   vpc_id = aws_vpc.vpc_main.id
 
   tags = {
-    Name = "${var.prefix}-internet-gateway"
+    Name = "${var.global.prefix}-internet-gateway"
   }
 }
 
@@ -40,7 +40,7 @@ resource "aws_eip" "elastic_ip" {
   domain = "vpc"
 
   tags = {
-    Name = "${var.prefix}-nat-ip"
+    Name = "${var.global.prefix}-nat-ip"
   }
 }
 
@@ -49,7 +49,7 @@ resource "aws_nat_gateway" "nat_gateway" {
   subnet_id     = aws_subnet.public_subnet.id
 
   tags = {
-    Name = "${var.prefix}-nat-gateway"
+    Name = "${var.global.prefix}-nat-gateway"
   }
 }
 
@@ -57,7 +57,7 @@ resource "aws_route_table" "public_route_table" {
     vpc_id = aws_vpc.vpc_main.id
 
     route {
-        cidr_block = var.vpc_cidr_block
+        cidr_block = var.vpc.vpc_cidr_block
         gateway_id = "local"
     }
 
@@ -67,7 +67,7 @@ resource "aws_route_table" "public_route_table" {
     }
 
     tags = {
-      Name = "${var.prefix}-public-route-table"
+      Name = "${var.global.prefix}-public-route-table"
     }
 }
 
@@ -75,7 +75,7 @@ resource "aws_route_table" "private_route_table" {
     vpc_id = aws_vpc.vpc_main.id
 
     route {
-        cidr_block = var.vpc_cidr_block
+        cidr_block = var.vpc.vpc_cidr_block
         gateway_id = "local"
     }
 
@@ -85,7 +85,7 @@ resource "aws_route_table" "private_route_table" {
     }
 
     tags = {
-      Name = "${var.prefix}-private-route-table"
+      Name = "${var.global.prefix}-private-route-table"
     }
 }
 

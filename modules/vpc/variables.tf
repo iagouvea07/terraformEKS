@@ -1,5 +1,15 @@
-variable "vpc_cidr_block"               { type = string }
-variable "public_subnet_cidr_block"     { type = string }
-variable "private_subnet_cidr_block"    { type = string }
-variable "region"                       { type = string }
-variable "prefix"                       { type = string }
+variable "global" {
+  type = object({
+    region  = string
+    profile = string
+    prefix  = string
+  })
+}
+
+variable "vpc" {
+  type = object({
+    vpc_cidr_block            = string
+    public_subnet_cidr_block  = string
+    private_subnet_cidr_block = string
+  })  
+}

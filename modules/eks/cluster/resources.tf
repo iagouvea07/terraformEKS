@@ -1,5 +1,5 @@
 resource "aws_iam_role" "cluster" {
-  name = "eks-cluster-role"
+  name = "${var.global.prefix}-eks-cluster-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -23,7 +23,7 @@ resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
 }
 
 resource "aws_eks_cluster" "cluster" {
-  name = "eks-cluster"
+  name = "${var.global.prefix}-eks-cluster"
 
   access_config {
     authentication_mode = "API"
