@@ -63,7 +63,6 @@ resource "aws_eks_access_entry" "root" {
 resource "aws_eks_access_policy_association" "root_admin" {
   cluster_name  = aws_eks_cluster.cluster.name
   principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-
   policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
 
   access_scope {
@@ -72,6 +71,23 @@ resource "aws_eks_access_policy_association" "root_admin" {
 
   depends_on = [ aws_eks_cluster.cluster ]
 }
+
+resource "aws_eks_access_entry" "terraform" {
+    cluster_name = aws_eks_cluster.cluster.name
+    principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/${var.global.profile}"
+    type = "STANDARD"
+  }
+
+  resource "aws_eks_access_policy_association" "terraform_admin" {
+    cluster_name = aws_eks_cluster.cluster.name
+    principal_arn = aws_eks_access_entry.terraform.principal_arn
+    policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+
+    access_scope {
+      type = "cluster"
+    }
+}
+
 
 resource "aws_eks_cluster" "cluster" {
   name = "${var.global.prefix}-eks-cluster"
@@ -145,11 +161,5 @@ resource "aws_eks_addon" "metricsserver" {
 resource "aws_eks_addon" "vpc_cni" {
   cluster_name                = aws_eks_cluster.cluster.name
   addon_name                  = "vpc-cni"
-  resolve_conflicts_on_update = "PRESERVE"
-}
-
-resource "aws_eks_addon" "ebs_csi_drive" {
-  cluster_name                = aws_eks_cluster.cluster.name
-  addon_name                  = "aws-ebs-csi-driver"
   resolve_conflicts_on_update = "PRESERVE"
 }
