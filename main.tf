@@ -17,3 +17,10 @@ module "vpc" {
   global                    = var.global
   vpc                       = var.vpc
 }
+
+module "eks" {
+  source  = "./modules/eks"
+  global  = var.global
+  eks     = var.eks
+  subnets = module.vpc.subnets
+}
