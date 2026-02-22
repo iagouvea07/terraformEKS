@@ -12,6 +12,11 @@ provider "aws" {
   profile = var.global.profile
 }
 
+module "iam" {
+  source = "./modules/iam"
+  global = var.global
+}
+
 module "vpc" {
   source = "./modules/vpc"
   global = var.global
@@ -23,4 +28,5 @@ module "eks" {
   global  = var.global
   eks     = var.eks
   subnets = module.vpc.subnets
+  roles    = module.iam.roles
 }

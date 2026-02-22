@@ -1,57 +1,3 @@
-resource "aws_iam_role" "cluster" {
-  name = "${var.global.prefix}-eks-cluster-role"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = [
-          "sts:AssumeRole",
-          "sts:TagSession"
-        ]
-        Effect = "Allow"
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-      },
-    ]
-  })
-}
-
-resource "aws_iam_role" "nodegroup" {
-  name = "eks-node-group-example"
-
-  assume_role_policy = jsonencode({
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "ec2.amazonaws.com"
-      }
-    }]
-    Version = "2012-10-17"
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "cluster_AmazonEKSClusterPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
-  role       = aws_iam_role.cluster.name
-}
-
-resource "aws_iam_role_policy_attachment" "nodegroup-AmazonEKSWorkerNodePolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-  role       = aws_iam_role.nodegroup.name
-}
-
-resource "aws_iam_role_policy_attachment" "nodegroup-AmazonEKS_CNI_Policy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-  role       = aws_iam_role.nodegroup.name
-}
-
-resource "aws_iam_role_policy_attachment" "nodegroup-AmazonEC2ContainerRegistryReadOnly" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-  role       = aws_iam_role.nodegroup.name
-}
-
 resource "aws_eks_access_entry" "root" {
   cluster_name  = aws_eks_cluster.cluster.name
   principal_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
@@ -88,7 +34,6 @@ resource "aws_eks_access_entry" "terraform" {
     }
 }
 
-
 resource "aws_eks_cluster" "cluster" {
   name = "${var.global.prefix}-eks-cluster"
 
@@ -96,7 +41,7 @@ resource "aws_eks_cluster" "cluster" {
     authentication_mode = "API"
   }
 
-  role_arn = aws_iam_role.cluster.arn
+  role_arn = var.roles.cluster.arn
   version  = var.eks.version
 
   vpc_config {
@@ -105,15 +50,22 @@ resource "aws_eks_cluster" "cluster" {
     ]
   }
 
-  depends_on = [
-    aws_iam_role_policy_attachment.cluster_AmazonEKSClusterPolicy,
-  ]
+}
+
+resource "aws_launch_template" "nodegroup" {
+  name = "${var.global.prefix}-nodegroup"
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "optional"
+    http_put_response_hop_limit = 2
+  }
 }
 
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.cluster.name
-  node_group_name = "${var.global.prefix}-nodegroup"
-  node_role_arn   = aws_iam_role.nodegroup.arn
+  node_group_name = aws_launch_template.nodegroup.name
+  node_role_arn   = var.roles.node.arn
   subnet_ids      = [for subnet in var.subnets.private_subnet_id : subnet]
   instance_types  = [var.eks.instance_type]
 
@@ -127,11 +79,6 @@ resource "aws_eks_node_group" "node_group" {
     max_unavailable = var.eks.max_unavailable
   }
 
-  depends_on = [
-    aws_iam_role_policy_attachment.nodegroup-AmazonEKSWorkerNodePolicy,
-    aws_iam_role_policy_attachment.nodegroup-AmazonEKS_CNI_Policy,
-    aws_iam_role_policy_attachment.nodegroup-AmazonEC2ContainerRegistryReadOnly,
-  ]
 }
 
 resource "aws_eks_addon" "coredns" {
@@ -163,3 +110,20 @@ resource "aws_eks_addon" "vpc_cni" {
   addon_name                  = "vpc-cni"
   resolve_conflicts_on_update = "PRESERVE"
 }
+
+resource "aws_eks_addon" "pod-identity" {
+  cluster_name                = aws_eks_cluster.cluster.name
+  addon_name                  = "eks-pod-identity-agent"
+  resolve_conflicts_on_update = "PRESERVE"
+}
+
+resource "aws_eks_addon" "ebs_csi" {
+  cluster_name                = aws_eks_cluster.cluster.name
+  addon_name                  = "aws-ebs-csi-driver"
+  resolve_conflicts_on_update = "PRESERVE"
+  pod_identity_association {
+    role_arn = var.roles.pod.arn
+    service_account = "ebs-csi-controller-sa"
+  }
+}
+

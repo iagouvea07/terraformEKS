@@ -23,3 +23,20 @@ variable "eks" {
     max_unavailable = number
   })
 }
+
+variable "roles" {
+  type = object({
+    cluster = object({
+      name  = string
+      arn   = string
+    })
+    node = object({
+      name  = string
+      arn   = string
+    })
+    pod = object({
+      name  = string
+      arn   = string
+    })
+  })
+}

@@ -13,7 +13,7 @@ The following resources that will be created are:
 - 1 Public Route Table and 1 Private Route Table
 - 1 EKS Cluster
 - 1 EKS Nodegroup
-- 5 Essentials Addons (coredns, kube-proxy, cert-manager, metrics-server, vpc-cni)
+- 5 Essentials Addons (coredns, kube-proxy, cert-manager, metrics-server, vpc-cni, ebs-csi)
 
 ## Required variables
 
