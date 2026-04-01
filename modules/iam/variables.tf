@@ -5,3 +5,7 @@ variable "global" {
     prefix  = string
   })
 }
+
+variable "cluster_oidc" {
+  type = string
+}

@@ -8,19 +8,29 @@ variable "global" {
 
 variable "subnets" {
   type = object({
-    public_subnet_id   = string
+    public_subnet_id   = list(string)
     private_subnet_id  = list(string)
   })
 }
 
 variable "eks" {
   type = object({
+    cluster_name    = string
     version         = string
     instance_type   = string
     desired_size    = number
     max_size        = number
     min_size        = number
     max_unavailable = number
+    addons_version = object({
+      coredns         = string
+      kube_proxy       = string
+      cert_manager     = string
+      metrics_server   = string
+      vpc_cni         = string
+      pod_identity    = string
+      ebs_csi         = string
+    })
   })
 }
 

@@ -1,0 +1,6 @@
+deployment:
+  clusterName: "cluster-name"
+  vpcId: "vpc-id"
+
+serviceAccount:
+  accountId: "aws-account-id"

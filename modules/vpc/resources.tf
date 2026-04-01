@@ -7,34 +7,53 @@ resource "aws_vpc" "vpc_main" {
   }
 }
 
-resource "aws_subnet" "public_subnet" {
+resource "aws_subnet" "public_subnet_1" {
   vpc_id                    = aws_vpc.vpc_main.id
-  cidr_block                = var.vpc.public_subnet_cidr_block
+  cidr_block                = var.vpc.public_subnet_cidr_block[0]
   map_public_ip_on_launch   = true
   availability_zone         = "${var.global.region}a"
 
   tags = {
     Name = "${var.global.prefix}-public-subnet"
+    "kubernetes.io/cluster/${var.eks.cluster_name}" = "shared"
+    "kubernetes.io/role/elb" = "1"
+  }
+}
+
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                    = aws_vpc.vpc_main.id
+  cidr_block                = var.vpc.public_subnet_cidr_block[1]
+  map_public_ip_on_launch   = true
+  availability_zone         = "${var.global.region}b"
+
+  tags = {
+    Name = "${var.global.prefix}-public-subnet"
+    "kubernetes.io/cluster/${var.eks.cluster_name}" = "shared"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 
 resource "aws_subnet" "private_subnet_1" {
-  vpc_id                    = aws_vpc.vpc_main.id
-  cidr_block                = var.vpc.private_subnet_cidr_block[0]
-  availability_zone         = "${var.global.region}a"
+  vpc_id            = aws_vpc.vpc_main.id
+  cidr_block        = var.vpc.private_subnet_cidr_block[0]
+  availability_zone = "${var.global.region}a"
 
   tags = {
     Name = "${var.global.prefix}-private-subnet-1"
+    "kubernetes.io/cluster/${var.eks.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"               = "1"
   }
 }
 
 resource "aws_subnet" "private_subnet_2" {
-  vpc_id                    = aws_vpc.vpc_main.id
-  cidr_block                = var.vpc.private_subnet_cidr_block[1]
-  availability_zone         = "${var.global.region}b"
+  vpc_id            = aws_vpc.vpc_main.id
+  cidr_block        = var.vpc.private_subnet_cidr_block[1]
+  availability_zone = "${var.global.region}b"
 
   tags = {
     Name = "${var.global.prefix}-private-subnet-2"
+    "kubernetes.io/cluster/${var.eks.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"               = "1"
   }
 }
 
@@ -56,7 +75,7 @@ resource "aws_eip" "elastic_ip" {
 
 resource "aws_nat_gateway" "nat_gateway" {
   allocation_id = aws_eip.elastic_ip.id
-  subnet_id     = aws_subnet.public_subnet.id
+  subnet_id     = aws_subnet.public_subnet_1.id
 
   tags = {
     Name = "${var.global.prefix}-nat-gateway"
@@ -89,8 +108,13 @@ resource "aws_route_table" "private_route_table" {
     }
 }
 
-resource "aws_route_table_association" "public_association" {
-    subnet_id       = aws_subnet.public_subnet.id
+resource "aws_route_table_association" "public_association_1" {
+    subnet_id       = aws_subnet.public_subnet_1.id
+    route_table_id  = aws_route_table.public_route_table.id
+}
+
+resource "aws_route_table_association" "public_association_2" {
+    subnet_id       = aws_subnet.public_subnet_2.id
     route_table_id  = aws_route_table.public_route_table.id
 }
 
