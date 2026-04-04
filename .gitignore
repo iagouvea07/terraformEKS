@@ -6,3 +6,6 @@ terraform.tfstate.backup
 .terraform.tfstate.lock.info
 
 helm/values.local.yaml
+
+terraform-1.tfvars
+terraform-2.tfvars

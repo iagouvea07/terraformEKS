@@ -20,7 +20,7 @@ resource "aws_iam_role" "cluster" {
 }
 
 resource "aws_iam_role" "nodegroup" {
-  name = "eks-node-group"
+  name = "${var.global.prefix}-eks-node-group"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -35,7 +35,7 @@ resource "aws_iam_role" "nodegroup" {
 }
 
 resource "aws_iam_role" "pod" {
-  name = "eks-pod"
+  name = "${var.global.prefix}-eks-pod"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -129,7 +129,7 @@ data "aws_iam_policy_document" "alb_controller_assume_role" {
 }
 
 resource "aws_iam_policy" "load_balancer_policy" {
-  name = "AWSLoadBalancerControllerIAMPolicy"
+  name   = "${var.global.prefix}-AWSLoadBalancerControllerIAMPolicy"
   policy = file("${path.module}/policies/alb_controller.json")
 }
 
@@ -139,6 +139,6 @@ resource "aws_iam_role" "alb_controller" {
 }
 
 resource "aws_iam_role_policy_attachment" "alb_controller" {
-  role = aws_iam_role.alb_controller.name
-  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/AWSLoadBalancerControllerIAMPolicy"
+  role       = aws_iam_role.alb_controller.name
+  policy_arn = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:policy/${var.global.prefix}-AWSLoadBalancerControllerIAMPolicy"
 }
