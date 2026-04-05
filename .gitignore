@@ -9,3 +9,5 @@ helm/values.local.yaml
 
 terraform-1.tfvars
 terraform-2.tfvars
+
+**/terraform.tfstate
